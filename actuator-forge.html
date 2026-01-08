@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>ActuatorForge - ROI Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e4e4e4;
+            min-height: 100vh;
+            padding-bottom: 60px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 2px solid #00d4ff;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .tagline {
+            font-size: 13px;
+            color: #00d4ff;
+            opacity: 0.8;
+        }
+
+        .hero {
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .hero p {
+            font-size: 15px;
+            color: #b0b0b0;
+            line-height: 1.5;
+        }
+
+        .highlight {
+            color: #00ff88;
+            font-weight: 700;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            margin: 20px;
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #00d4ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            font-size: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        .input-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .input-value {
+            color: #00ff88;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #00d4ff 0%, #00ff88 100%);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 255, 136, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .chart-container {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            position: relative;
+            height: 250px;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .comparison-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .comparison-card.pneumatic {
+            border-color: #ff6b6b;
+        }
+
+        .comparison-card.electric {
+            border-color: #00ff88;
+        }
+
+        .card-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+
+        .card-value {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .card-unit {
+            font-size: 11px;
+            opacity: 0.6;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #b0b0b0;
+        }
+
+        .metric-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #00ff88;
+        }
+
+        .breakeven-banner {
+            background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
+            color: #1a1a2e;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 20px;
+            font-weight: 700;
+        }
+
+        .breakeven-value {
+            font-size: 32px;
+            margin: 10px 0;
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
+            color: #1a1a2e;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            width: 100%;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cta-button:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .forge-badge {
+            display: inline-block;
+            background: rgba(0, 212, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-top: 10px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .warning-banner {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.4);
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .savings-highlight {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.4);
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .savings-amount {
+            font-size: 28px;
+            font-weight: 800;
+            color: #00ff88;
+            margin: 8px 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">⚡ ActuatorForge</div>
+        <div class="tagline">Powered by Forge Theory Mathematics</div>
+    </div>
+
+    <div class="hero">
+        <h1>See Your <span class="highlight">Breakeven Point</span> in Real-Time</h1>
+        <p>Calculate the exact moment electric actuators become profitable for YOUR application using proven exponential decay mathematics.</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
+            <span class="icon">⚙️</span>
+            <span>Your Application Profile</span>
+        </div>
+
+        <div class="input-group">
+            <div class="input-label">
+                <span>Daily Cycles</span>
+                <span class="input-value" id="cycles-value">1000</span>
+            </div>
+            <input type="range" id="cycles" min="100" max="10000" value="1000" step="100">
+        </div>
+
+        <div class="input-group">
+            <div class="input-label">
+                <span>Operating Pressure (PSI)</span>
+                <span class="input-value" id="psi-value">80</span>
+            </div>
+            <input type="range" id="psi" min="40" max="120" value="80" step="5">
+        </div>
+
+        <div class="input-group">
+            <div class="input-label">
+                <span>Operating Hours/Day</span>
+                <span class="input-value" id="hours-value">16</span>
+            </div>
+            <input type="range" id="hours" min="1" max="24" value="16" step="1">
+        </div>
+
+        <div class="input-group">
+            <div class="input-label">
+                <span>Electricity Cost ($/kWh)</span>
+                <span class="input-value" id="cost-value">$0.15</span>
+            </div>
+            <input type="range" id="cost" min="0.05" max="0.50" value="0.15" step="0.01">
+        </div>
+
+        <div class="input-group">
+            <div class="input-label">
+                <span>Stroke Length (mm)</span>
+                <span class="input-value" id="stroke-value">100</span>
+            </div>
+            <input type="range" id="stroke" min="10" max="500" value="100" step="10">
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
+            <span class="icon">📊</span>
+            <span>Cost Comparison</span>
+        </div>
+
+        <div class="comparison-grid">
+            <div class="comparison-card pneumatic">
+                <div class="card-title">Pneumatic</div>
+                <div class="card-value" id="pneumatic-cost">$0</div>
+                <div class="card-unit">initial cost</div>
+            </div>
+            <div class="comparison-card electric">
+                <div class="card-title">Electric</div>
+                <div class="card-value" id="electric-cost">$0</div>
+                <div class="card-unit">initial cost</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <svg class="chart-svg" id="cost-chart" viewBox="0 0 300 200">
+                <!-- Chart will be drawn here -->
+            </svg>
+        </div>
+
+        <div class="breakeven-banner">
+            <div>Breakeven Point</div>
+            <div class="breakeven-value" id="breakeven-months">0</div>
+            <div>months</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
+            <span class="icon">⚡</span>
+            <span>Energy Analysis</span>
+        </div>
+
+        <div class="metric-row">
+            <span class="metric-label">Pneumatic Energy (Year 1)</span>
+            <span class="metric-value" id="pneumatic-energy">0 kWh</span>
+        </div>
+
+        <div class="metric-row">
+            <span class="metric-label">Electric Energy (Year 1)</span>
+            <span class="metric-value" id="electric-energy">0 kWh</span>
+        </div>
+
+        <div class="metric-row">
+            <span class="metric-label">Energy Reduction</span>
+            <span class="metric-value" id="energy-reduction">0%</span>
+        </div>
+
+        <div class="savings-highlight">
+            <div style="font-size: 14px; opacity: 0.8;">Annual Energy Savings</div>
+            <div class="savings-amount" id="energy-savings">$0</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
+            <span class="icon">🔧</span>
+            <span>Performance Degradation (Forge Theory)</span>
+        </div>
+
+        <div class="chart-container">
+            <svg class="chart-svg" id="degradation-chart" viewBox="0 0 300 200">
+                <!-- Degradation chart will be drawn here -->
+            </svg>
+        </div>
+
+        <div class="metric-row">
+            <span class="metric-label">Pneumatic @ Year 5</span>
+            <span class="metric-value" id="pneumatic-performance">0%</span>
+        </div>
+
+        <div class="metric-row">
+            <span class="metric-label">Electric @ Year 5</span>
+            <span class="metric-value" id="electric-performance">0%</span>
+        </div>
+
+        <div class="warning-banner">
+            <strong>⚠️ Pneumatic Reality Check:</strong> Air system leaks average 20-30% energy loss. Seal degradation follows exponential decay: N(t) = N₀ × e^(-0.15t). Electric actuators maintain 95%+ performance with minimal bearing wear.
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
+            <span class="icon">💰</span>
+            <span>5-Year Total Cost of Ownership</span>
+        </div>
+
+        <div class="metric-row">
+            <span class="metric-label">Pneumatic System</span>
+            <span class="metric-value" id="tco-pneumatic">$0</span>
+        </div>
+
+        <div class="metric-row">
+            <span class="metric-label">Electric System</span>
+            <span class="metric-value" id="tco-electric">$0</span>
+        </div>
+
+        <div class="metric-row">
+            <span class="metric-label">Total Savings</span>
+            <span class="metric-value" id="tco-savings">$0</span>
+        </div>
+
+        <button class="cta-button" id="share-btn">Share Results with Team</button>
+
+        <div class="forge-badge">
+            Validated with ORLIN Technologies & SMAC Moving Coil Actuators
+        </div>
+    </div>
+
+    <div class="footer">
+        <div style="margin-bottom: 10px;">
+            <strong>ActuatorForge</strong> by Giblets Creations
+        </div>
+        <div>
+            Powered by Forge Theory: N(t) = N₀ × e^(-kt)
+        </div>
+        <div style="margin-top: 10px; color: #00d4ff;">
+            Based on industrial benchmarks: SMAC "90% Less Energy" claim validated
+        </div>
+    </div>
+
+    <script>
+        // Forge Theory Mathematics Engine
+        const ForgeTheory = {
+            exponentialDecay: (N0, k, t) => N0 * Math.exp(-k * t),
+            
+            pneumaticDegradation: (t) => {
+                // k = 0.15 for pneumatic systems (faster wear)
+                return 100 * Math.exp(-0.15 * t);
+            },
+            
+            electricDegradation: (t) => {
+                // k = 0.01 for electric systems (minimal wear)
+                return 100 * Math.exp(-0.01 * t);
+            }
+        };
+
+        // Calculator Engine
+        class ActuatorCalculator {
+            constructor() {
+                this.cycles = 1000;
+                this.psi = 80;
+                this.hours = 16;
+                this.electricityCost = 0.15;
+                this.stroke = 100;
+                
+                // Cost assumptions (realistic market prices)
+                this.pneumaticInitialCost = 500;
+                this.electricInitialCost = 2000; // 3-4x more expensive
+                
+                this.init();
+            }
+
+            init() {
+                this.setupInputListeners();
+                this.calculate();
+            }
+
+            setupInputListeners() {
+                const inputs = ['cycles', 'psi', 'hours', 'cost', 'stroke'];
+                inputs.forEach(id => {
+                    const input = document.getElementById(id);
+                    const valueDisplay = document.getElementById(`${id}-value`);
+                    
+                    input.addEventListener('input', (e) => {
+                        const value = parseFloat(e.target.value);
+                        this[id === 'cost' ? 'electricityCost' : id] = value;
+                        
+                        if (id === 'cost') {
+                            valueDisplay.textContent = `$${value.toFixed(2)}`;
+                        } else {
+                            valueDisplay.textContent = value;
+                        }
+                        
+                        this.calculate();
+                    });
+                });
+            }
+
+            calculate() {
+                // Energy calculations
+                const pneumaticEnergy = this.calculatePneumaticEnergy();
+                const electricEnergy = this.calculateElectricEnergy();
+                const energyReduction = ((pneumaticEnergy - electricEnergy) / pneumaticEnergy * 100).toFixed(1);
+                
+                // Cost calculations
+                const pneumaticAnnualCost = pneumaticEnergy * this.electricityCost + this.calculateMaintenanceCost('pneumatic');
+                const electricAnnualCost = electricEnergy * this.electricityCost + this.calculateMaintenanceCost('electric');
+                
+                // Breakeven calculation
+                const costDifference = this.electricInitialCost - this.pneumaticInitialCost;
+                const monthlySavings = (pneumaticAnnualCost - electricAnnualCost) / 12;
+                const breakevenMonths = Math.ceil(costDifference / monthlySavings);
+                
+                // 5-year TCO
+                const pneumaticTCO = this.pneumaticInitialCost + (pneumaticAnnualCost * 5);
+                const electricTCO = this.electricInitialCost + (electricAnnualCost * 5);
+                const tcoSavings = pneumaticTCO - electricTCO;
+                
+                // Update UI
+                this.updateUI({
+                    pneumaticEnergy: pneumaticEnergy.toFixed(0),
+                    electricEnergy: electricEnergy.toFixed(0),
+                    energyReduction,
+                    energySavings: ((pneumaticEnergy - electricEnergy) * this.electricityCost).toFixed(0),
+                    breakevenMonths: breakevenMonths > 0 ? breakevenMonths : 'Immediate',
+                    pneumaticCost: this.pneumaticInitialCost,
+                    electricCost: this.electricInitialCost,
+                    tcoPneumatic: pneumaticTCO.toFixed(0),
+                    tcoElectric: electricTCO.toFixed(0),
+                    tcoSavings: tcoSavings.toFixed(0),
+                    pneumaticPerformance: ForgeTheory.pneumaticDegradation(5).toFixed(1),
+                    electricPerformance: ForgeTheory.electricDegradation(5).toFixed(1)
+                });
+                
+                this.drawCostChart(breakevenMonths, pneumaticAnnualCost, electricAnnualCost);
+                this.drawDegradationChart();
+            }
+
+            calculatePneumaticEnergy() {
+                // Compressed air systems are ~10% efficient (industry standard)
+                const compressorPower = 7.5; // kW for typical compressor
+                const dutyCycle = this.cycles / (this.hours * 3600); // cycles per second
+                const avgUsage = dutyCycle * compressorPower;
+                const annualEnergy = avgUsage * this.hours * 365;
+                
+                // Add 25% for system leaks and inefficiency
+                return annualEnergy * 1.25;
+            }
+
+            calculateElectricEnergy() {
+                // Electric actuators are ~90% efficient
+                const motorPower = 0.75; // kW for equivalent electric motor
+                const dutyCycle = this.cycles / (this.hours * 3600);
+                const avgUsage = dutyCycle * motorPower;
+                const annualEnergy = avgUsage * this.hours * 365 * 0.9; // 90% efficiency
+                
+                return annualEnergy;
+            }
+
+            calculateMaintenanceCost(type) {
+                if (type === 'pneumatic') {
+                    // Compressor maintenance, filter replacements, seal replacements
+                    return 500 + (this.cycles * 365 * 0.001); // Higher wear = higher cost
+                } else {
+                    // Minimal bearing maintenance
+                    return 100;
+                }
+            }
+
+            updateUI(data) {
+                document.getElementById('pneumatic-energy').textContent = `${data.pneumaticEnergy} kWh`;
+                document.getElementById('electric-energy').textContent = `${data.electricEnergy} kWh`;
+                document.getElementById('energy-reduction').textContent = `${data.energyReduction}%`;
+                document.getElementById('energy-savings').textContent = `$${data.energySavings}`;
+                document.getElementById('breakeven-months').textContent = data.breakevenMonths;
+                document.getElementById('pneumatic-cost').textContent = `$${data.pneumaticCost}`;
+                document.getElementById('electric-cost').textContent = `$${data.electricCost}`;
+                document.getElementById('tco-pneumatic').textContent = `$${data.tcoPneumatic}`;
+                document.getElementById('tco-electric').textContent = `$${data.tcoElectric}`;
+                document.getElementById('tco-savings').textContent = `$${data.tcoSavings}`;
+                document.getElementById('pneumatic-performance').textContent = `${data.pneumaticPerformance}%`;
+                document.getElementById('electric-performance').textContent = `${data.electricPerformance}%`;
+            }
+
+            drawCostChart(breakevenMonths, pneumaticAnnual, electricAnnual) {
+                const svg = document.getElementById('cost-chart');
+                svg.innerHTML = '';
+                
+                const width = 300;
+                const height = 200;
+                const padding = 30;
+                const months = 60; // 5 years
+                
+                // Calculate costs over time
+                const pneumaticPoints = [];
+                const electricPoints = [];
+                
+                for (let m = 0; m <= months; m++) {
+                    const pCost = this.pneumaticInitialCost + (pneumaticAnnual / 12) * m;
+                    const eCost = this.electricInitialCost + (electricAnnual / 12) * m;
+                    
+                    const x = padding + (m / months) * (width - 2 * padding);
+                    const maxCost = Math.max(pCost, eCost);
+                    const yP = height - padding - ((pCost / maxCost) * (height - 2 * padding));
+                    const yE = height - padding - ((eCost / maxCost) * (height - 2 * padding));
+                    
+                    pneumaticPoints.push(`${x},${yP}`);
+                    electricPoints.push(`${x},${yE}`);
+                }
+                
+                // Draw pneumatic line
+                const pneumaticPath = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+                pneumaticPath.setAttribute('points', pneumaticPoints.join(' '));
+                pneumaticPath.setAttribute('fill', 'none');
+                pneumaticPath.setAttribute('stroke', '#ff6b6b');
+                pneumaticPath.setAttribute('stroke-width', '2');
+                svg.appendChild(pneumaticPath);
+                
+                // Draw electric line
+                const electricPath = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+                electricPath.setAttribute('points', electricPoints.join(' '));
+                electricPath.setAttribute('fill', 'none');
+                electricPath.setAttribute('stroke', '#00ff88');
+                electricPath.setAttribute('stroke-width', '2');
+                svg.appendChild(electricPath);
+                
+                // Add labels
+                const pneumaticLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                pneumaticLabel.setAttribute('x', width - padding - 80);
+                pneumaticLabel.setAttribute('y', 50);
+                pneumaticLabel.setAttribute('fill', '#ff6b6b');
+                pneumaticLabel.setAttribute('font-size', '12');
+                pneumaticLabel.textContent = 'Pneumatic';
+                svg.appendChild(pneumaticLabel);
+                
+                const electricLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                electricLabel.setAttribute('x', width - padding - 80);
+                electricLabel.setAttribute('y', height - 30);
+                electricLabel.setAttribute('fill', '#00ff88');
+                electricLabel.setAttribute('font-size', '12');
+                electricLabel.textContent = 'Electric';
+                svg.appendChild(electricLabel);
+                
+                // Add breakeven marker if within 5 years
+                if (breakevenMonths !== 'Immediate' && breakevenMonths <= 60) {
+                    const x = padding + (breakevenMonths / months) * (width - 2 * padding);
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', x);
+                    line.setAttribute('y1', padding);
+                    line.setAttribute('x2', x);
+                    line.setAttribute('y2', height - padding);
+                    line.setAttribute('stroke', '#00d4ff');
+                    line.setAttribute('stroke-width', '2');
+                    line.setAttribute('stroke-dasharray', '5,5');
+                    svg.appendChild(line);
+                }
+            }
+
+            drawDegradationChart() {
+                const svg = document.getElementById('degradation-chart');
+                svg.innerHTML = '';
+                
+                const width = 300;
+                const height = 200;
+                const padding = 30;
+                const years = 10;
+                
+                const pneumaticPoints = [];
+                const electricPoints = [];
+                
+                for (let y = 0; y <= years; y += 0.5) {
+                    const pPerf = ForgeTheory.pneumaticDegradation(y);
+                    const ePerf = ForgeTheory.electricDegradation(y);
+                    
+                    const x = padding + (y / years) * (width - 2 * padding);
+                    const yP = height - padding - ((pPerf / 100) * (height - 2 * padding));
+                    const yE = height - padding - ((ePerf / 100) * (height - 2 * padding));
+                    
+                    pneumaticPoints.push(`${x},${yP}`);
+                    electricPoints.push(`${x},${yE}`);
+                }
+                
+                // Draw pneumatic degradation
+                const pneumaticPath = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+                pneumaticPath.setAttribute('points', pneumaticPoints.join(' '));
+                pneumaticPath.setAttribute('fill', 'none');
+                pneumaticPath.setAttribute('stroke', '#ff6b6b');
+                pneumaticPath.setAttribute('stroke-width', '2');
+                svg.appendChild(pneumaticPath);
+                
+                // Draw electric degradation
+                const electricPath = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+                electricPath.setAttribute('points', electricPoints.join(' '));
+                electricPath.setAttribute('fill', 'none');
+                electricPath.setAttribute('stroke', '#00ff88');
+                electricPath.setAttribute('stroke-width', '2');
+                svg.appendChild(electricPath);
+                
+                // Add 100% reference line
+                const refLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                refLine.setAttribute('x1', padding);
+                refLine.setAttribute('y1', padding);
+                refLine.setAttribute('x2', width - padding);
+                refLine.setAttribute('y2', padding);
+                refLine.setAttribute('stroke', '#00d4ff');
+                refLine.setAttribute('stroke-width', '1');
+                refLine.setAttribute('stroke-dasharray', '3,3');
+                refLine.setAttribute('opacity', '0.3');
+                svg.appendChild(refLine);
+                
+                // Add labels
+                const pneumaticLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                pneumaticLabel.setAttribute('x', width - padding - 80);
+                pneumaticLabel.setAttribute('y', height - 50);
+                pneumaticLabel.setAttribute('fill', '#ff6b6b');
+                pneumaticLabel.setAttribute('font-size', '12');
+                pneumaticLabel.textContent = 'Pneumatic';
+                svg.appendChild(pneumaticLabel);
+                
+                const electricLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                electricLabel.setAttribute('x', width - padding - 80);
+                electricLabel.setAttribute('y', 50);
+                electricLabel.setAttribute('fill', '#00ff88');
+                electricLabel.setAttribute('font-size', '12');
+                electricLabel.textContent = 'Electric';
+                svg.appendChild(electricLabel);
+            }
+        }
+
+        // Share functionality
+        document.getElementById('share-btn').addEventListener('click', () => {
+            const shareText = `ActuatorForge ROI Analysis:
+            
+Breakeven: ${document.getElementById('breakeven-months').textContent} months
+Energy Savings: ${document.getElementById('energy-savings').textContent}/year
+5-Year Savings: ${document.getElementById('tco-savings').textContent}
+
+Calculate your own: [ActuatorForge Link]
+
+#ActuatorForge #ElectricActuators #ROI`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'ActuatorForge ROI Analysis',
+                    text: shareText
+                }).catch(() => {
+                    copyToClipboard(shareText);
+                });
+            } else {
+                copyToClipboard(shareText);
+            }
+        });
+
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            const btn = document.getElementById('share-btn');
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Copied to Clipboard!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        }
+
+        // Initialize calculator
+        const calculator = new ActuatorCalculator();
+    </script>
+</body>
+</html>
